@@ -10,7 +10,7 @@ func (ws *WS) OnEpollAccept(fd int) {
 	}
 }
 
-func (ws *WS) OnEpollReceive(sequenceId int, fd int, msg []byte, n int) {
+func (ws *WS) OnEpollReceive(fd int, msg []byte, n int) {
 	if ws.isHttpUpgrade(msg, n) {
 		ws.upgradeHttpAction(fd, msg)
 	} else {
@@ -18,13 +18,13 @@ func (ws *WS) OnEpollReceive(sequenceId int, fd int, msg []byte, n int) {
 	}
 }
 
-func (ws *WS) OnEpollClose(sequenceId int, fd int) {
+func (ws *WS) OnEpollClose(fd int) {
 	if ws.OnClose != nil {
 		ws.OnClose(fd)
 	}
 }
 
-func (ws *WS) OnEpollError(sequenceId int, fd int, code epoll.ErrorCode, err error) {
+func (ws *WS) OnEpollError(fd int, code epoll.ErrorCode, err error) {
 	if ws.OnError != nil {
 		ws.OnError(fd, code, err)
 	}

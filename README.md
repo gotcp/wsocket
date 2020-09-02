@@ -35,7 +35,7 @@ func OnReceive(fd int, opcode wsocket.Op, msg []byte) {
 	}
 }
 
-// Synchronous event. This event will be triggered before closing fd
+// Synchronous event
 func OnClose(fd int) {
 	fmt.Printf("OnClose -> %d\n", fd)
 }
@@ -52,11 +52,7 @@ func OnPong(fd int) {
 
 // Asynchronous event
 func OnError(fd int, code epoll.ErrorCode, err error) {
-	if fd > 0 && code == epoll.ERROR_CLOSE_CONNECTION {
-		fmt.Printf("OnError -> %d, %d, %v\n", fd, code, err)
-	} else {
-		fmt.Printf("OnError -> %d, %v\n", code, err)
-	}
+	fmt.Printf("OnError -> %d, %d, %v\n", fd, code, err)
 }
 
 func main() {

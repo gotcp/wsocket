@@ -150,16 +150,6 @@ func GetOpcodeByte(opcode Op) byte {
 	return op
 }
 
-func WriteHttpHeader(dst []byte, args ...[]byte) int {
-	var p = 0
-	var arg []byte
-	for _, arg = range args {
-		copy(dst[p:], arg)
-		p += len(arg)
-	}
-	return p
-}
-
 func GetAcceptKey(dst []byte, key []byte) int {
 	var h = sha1.New()
 	h.Write(key)

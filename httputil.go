@@ -10,11 +10,11 @@ const (
 )
 
 var (
-	httpBytesGet                = []byte("GET")
-	httpBytesWebSocket          = []byte("websocket")
-	httpBytesSpace              = []byte(" ")
-	httpBytesKeyUpgrade         = []byte("Upgrade:")
-	httpBytesKeySecWebSocketKey = []byte("Sec-WebSocket-Key:")
+	HttpBytesGet                = []byte("GET")
+	HttpBytesWebSocket          = []byte("websocket")
+	HttpBytesSpace              = []byte(" ")
+	HttpBytesKeyUpgrade         = []byte("Upgrade:")
+	HttpBytesKeySecWebSocketKey = []byte("Sec-WebSocket-Key:")
 )
 
 type HttpHeader struct {
@@ -30,6 +30,31 @@ func NewHttpHeader(buf []byte) *HttpHeader {
 		header.HeaderContent = buf[:HTTP_HEADER_MAX]
 	}
 	return header
+}
+
+func (h *HttpHeader) GetHttpHeaderMethod() ([]byte, []byte, []byte) {
+	var lineEnd = bytes.IndexByte(h.HeaderContent, '\r')
+	if lineEnd <= 0 {
+		return nil, nil, nil
+	}
+	var arrs = bytes.Split(h.HeaderContent[:lineEnd], HttpBytesSpace)
+	if len(arrs) == 3 {
+		return arrs[0], arrs[1], arrs[2]
+	}
+	return nil, nil, nil
+}
+
+func (h *HttpHeader) GetHttpHeaderValue(key []byte) []byte {
+	var idx = bytes.Index(h.HeaderContent, key)
+	if idx <= 0 {
+		return nil
+	}
+	var startIdx = idx + len(key) + 1
+	var lineEnd = bytes.IndexByte(h.HeaderContent[startIdx:], '\r')
+	if lineEnd <= 0 {
+		return nil
+	}
+	return h.HeaderContent[startIdx : startIdx+lineEnd]
 }
 
 func IsHttpHeaderLengthValid(n int) bool {
@@ -48,30 +73,15 @@ func IsHttpHeaderValid(buf []byte) bool {
 }
 
 func IsHttpGet(buf []byte) bool {
-	return bytes.Equal(buf[:3], httpBytesGet)
+	return bytes.Equal(buf[:3], HttpBytesGet)
 }
 
-func (h *HttpHeader) GetHttpHeaderMethod() ([]byte, []byte, []byte) {
-	var lineEnd = bytes.IndexByte(h.HeaderContent, '\r')
-	if lineEnd <= 0 {
-		return nil, nil, nil
+func WriteHttpHeader(dst []byte, args ...[]byte) int {
+	var p = 0
+	var arg []byte
+	for _, arg = range args {
+		copy(dst[p:], arg)
+		p += len(arg)
 	}
-	var arrs = bytes.Split(h.HeaderContent[:lineEnd], httpBytesSpace)
-	if len(arrs) == 3 {
-		return arrs[0], arrs[1], arrs[2]
-	}
-	return nil, nil, nil
-}
-
-func (h *HttpHeader) GetHttpHeaderValue(key []byte) []byte {
-	var idx = bytes.Index(h.HeaderContent, key)
-	if idx <= 0 {
-		return nil
-	}
-	var startIdx = idx + len(key) + 1
-	var lineEnd = bytes.IndexByte(h.HeaderContent[startIdx:], '\r')
-	if lineEnd <= 0 {
-		return nil
-	}
-	return h.HeaderContent[startIdx : startIdx+lineEnd]
+	return p
 }
