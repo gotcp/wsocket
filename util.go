@@ -12,7 +12,7 @@ import (
 	"github.com/gotcp/epoll"
 )
 
-func (ws *WS) isHttpUpgrade(buf []byte, n int) bool {
+func (ws *WS) IsHttpUpgrade(buf []byte, n int) bool {
 	return ws.IsBuiltInHttp && IsHttpGet(buf) && IsHttpHeaderLengthValid(n)
 }
 
@@ -153,7 +153,7 @@ func GetOpcodeByte(opcode Op) byte {
 func GetAcceptKey(dst []byte, key []byte) int {
 	var h = sha1.New()
 	h.Write(key)
-	h.Write(Guid)
+	h.Write(HttpBytesWebSocketGuid)
 	var hash = h.Sum(nil)
 	var n = base64.StdEncoding.EncodedLen(len(hash))
 	base64.StdEncoding.Encode(dst, hash)
@@ -165,4 +165,14 @@ func GetConnFd(conn net.Conn) int {
 	var fdVal = tcpConn.FieldByName("fd")
 	var pfdVal = reflect.Indirect(fdVal).FieldByName("pfd")
 	return int(pfdVal.FieldByName("Sysfd").Int())
+}
+
+func WriteBytes(dst []byte, args ...[]byte) int {
+	var p = 0
+	var arg []byte
+	for _, arg = range args {
+		copy(dst[p:], arg)
+		p += len(arg)
+	}
+	return p
 }

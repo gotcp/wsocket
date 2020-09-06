@@ -11,7 +11,7 @@ func (ws *WS) OnEpollAccept(fd int) {
 }
 
 func (ws *WS) OnEpollReceive(fd int, msg []byte, n int) {
-	if ws.isHttpUpgrade(msg, n) {
+	if ws.IsHttpUpgrade(msg, n) {
 		ws.upgradeHttpAction(fd, msg)
 	} else {
 		ws.dataAction(fd, msg, n)

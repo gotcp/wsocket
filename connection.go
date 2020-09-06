@@ -4,24 +4,16 @@ import (
 	"net"
 )
 
-func (ws *WS) Add(fd int) error {
-	return ws.Ep.Add(fd)
-}
-
-func (ws *WS) Del(fd int) error {
-	return ws.Ep.Delete(fd)
-}
-
 func (ws *WS) Close(fd int) {
-	ws.Ep.CloseAction(fd)
+	ws.Ep.DestroyConnection(fd)
 }
 
 func (ws *WS) AddConn(conn net.Conn) (int, error) {
 	var fd = GetConnFd(conn)
-	return fd, ws.Ep.Add(fd)
+	return fd, ws.Ep.EstablishConnection(fd)
 }
 
-func (ws *WS) CloseConn(conn net.Conn) {
+func (ws *WS) CloseConn(conn net.Conn) error {
 	var fd = GetConnFd(conn)
-	ws.Ep.CloseAction(fd)
+	return ws.Ep.DestroyConnection(fd)
 }

@@ -10,12 +10,16 @@ import (
 )
 
 var (
-	Guid                  = []byte("258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
-	UpgradeHeaderTemplate = []byte(" 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ")
-	HttpHeaderTemplate404 = []byte(" 404 Not Found\r\n\r\n")
-	WrapLines             = []byte("\r\n\r\n")
-	HttpIdentify          = []byte("HTTP")
-	UpgradeIdentify       = "websocket"
+	HttpBytesWebSocketGuid         = []byte("258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
+	HttpBytesUpgradeHeaderTemplate = []byte(" 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ")
+	HttpBytesHttpHeaderTemplate404 = []byte(" 404 Not Found\r\n\r\n")
+	HttpBytesHttpIdentify          = []byte("HTTP")
+	HttpBytesWebSocket             = []byte("websocket")
+	HttpBytesKeyUpgrade            = []byte("Upgrade:")
+	HttpBytesKeySecWebSocketKey    = []byte("Sec-WebSocket-Key:")
+	HttpBytesWrapLines             = []byte("\r\n\r\n")
+	HttpStringUpgradeIdentify      = "websocket"
+	HttpStringKeySecWebSocketKey   = "Sec-WebSocket-Key"
 )
 
 func (ws *WS) UpgradeWithFd(fd int, buf []byte) error {
@@ -33,7 +37,7 @@ func (ws *WS) UpgradeWithFd(fd int, buf []byte) error {
 		key = header.GetHttpHeaderValue(HttpBytesKeySecWebSocketKey)
 		_, path, proto = header.GetHttpHeaderMethod()
 		if key != nil && path != nil && proto != nil &&
-			bytes.Contains(proto, HttpIdentify) {
+			bytes.Contains(proto, HttpBytesHttpIdentify) {
 			buffer, err = ws.getBytesPoolItem()
 			if err != nil {
 				return err
@@ -41,7 +45,7 @@ func (ws *WS) UpgradeWithFd(fd int, buf []byte) error {
 			defer ws.bufferPool.Put(buffer)
 
 			if bytes.Equal(path, ws.Path) == false {
-				bn = WriteHttpHeader(*buffer, proto, HttpHeaderTemplate404)
+				bn = WriteBytes(*buffer, proto, HttpBytesHttpHeaderTemplate404)
 				ws.Response(fd, (*buffer)[:bn])
 				return errors.New("HTTP path not found")
 			}
@@ -53,7 +57,7 @@ func (ws *WS) UpgradeWithFd(fd int, buf []byte) error {
 			defer ws.bufferPool.Put(acceptKey)
 
 			an = GetAcceptKey(*acceptKey, key)
-			bn = WriteHttpHeader(*buffer, proto, UpgradeHeaderTemplate, (*acceptKey)[:an], WrapLines)
+			bn = WriteBytes(*buffer, proto, HttpBytesUpgradeHeaderTemplate, (*acceptKey)[:an], HttpBytesWrapLines)
 
 			err = ws.Response(fd, (*buffer)[:bn])
 
@@ -67,7 +71,7 @@ func (ws *WS) UpgradeWithFd(fd int, buf []byte) error {
 }
 
 func (ws *WS) Upgrade(w http.ResponseWriter, r *http.Request) (int, net.Conn, error) {
-	if r.Header.Get("Upgrade") != UpgradeIdentify {
+	if r.Header.Get("Upgrade") != HttpStringUpgradeIdentify {
 		return -1, nil, errors.New("invalid HTTP upgrade")
 	}
 
@@ -96,7 +100,7 @@ func (ws *WS) Upgrade(w http.ResponseWriter, r *http.Request) (int, net.Conn, er
 	var bn, an int
 
 	var key []byte
-	key = []byte(r.Header.Get("Sec-Websocket-Key"))
+	key = []byte(r.Header.Get(HttpStringKeySecWebSocketKey))
 
 	acceptKey, err = ws.getBytesPoolItem()
 	if err != nil {
@@ -115,7 +119,7 @@ func (ws *WS) Upgrade(w http.ResponseWriter, r *http.Request) (int, net.Conn, er
 	}
 	defer ws.bufferPool.Put(buffer)
 
-	bn = WriteHttpHeader(*buffer, proto, UpgradeHeaderTemplate, (*acceptKey)[:an], WrapLines)
+	bn = WriteBytes(*buffer, proto, HttpBytesUpgradeHeaderTemplate, (*acceptKey)[:an], HttpBytesWrapLines)
 
 	err = epoll.WriteWithTimeout(fd, (*buffer)[:bn], ws.Timeout)
 	if err != nil {

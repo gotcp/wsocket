@@ -10,11 +10,8 @@ const (
 )
 
 var (
-	HttpBytesGet                = []byte("GET")
-	HttpBytesWebSocket          = []byte("websocket")
-	HttpBytesSpace              = []byte(" ")
-	HttpBytesKeyUpgrade         = []byte("Upgrade:")
-	HttpBytesKeySecWebSocketKey = []byte("Sec-WebSocket-Key:")
+	HttpBytesGet   = []byte("GET")
+	HttpBytesSpace = []byte(" ")
 )
 
 type HttpHeader struct {
@@ -74,14 +71,4 @@ func IsHttpHeaderValid(buf []byte) bool {
 
 func IsHttpGet(buf []byte) bool {
 	return bytes.Equal(buf[:3], HttpBytesGet)
-}
-
-func WriteHttpHeader(dst []byte, args ...[]byte) int {
-	var p = 0
-	var arg []byte
-	for _, arg = range args {
-		copy(dst[p:], arg)
-		p += len(arg)
-	}
-	return p
 }
