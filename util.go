@@ -30,9 +30,9 @@ func (ws *WS) Write(opcode Op, fd int, msg []byte, timeout time.Duration) error 
 	}
 
 	if timeout > 0 {
-		err = epoll.WriteWithTimeout(fd, (*buf)[:n], timeout)
+		_, err = epoll.WriteWithTimeout(fd, (*buf)[:n], timeout)
 	} else {
-		err = epoll.Write(fd, (*buf)[:n])
+		_, err = epoll.Write(fd, (*buf)[:n])
 	}
 
 	return err

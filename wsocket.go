@@ -92,3 +92,7 @@ func (ws *WS) StartWithHttp() {
 	ws.IsBuiltInHttp = false
 	ws.Ep.Listen()
 }
+
+func (ws *WS) Stop() error {
+	return ws.Ep.Stop()
+}

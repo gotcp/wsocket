@@ -121,7 +121,7 @@ func (ws *WS) Upgrade(w http.ResponseWriter, r *http.Request) (int, net.Conn, er
 
 	bn = WriteBytes(*buffer, proto, HttpBytesUpgradeHeaderTemplate, (*acceptKey)[:an], HttpBytesWrapLines)
 
-	err = epoll.WriteWithTimeout(fd, (*buffer)[:bn], ws.Timeout)
+	_, err = epoll.WriteWithTimeout(fd, (*buffer)[:bn], ws.Timeout)
 	if err != nil {
 		return -1, nil, err
 	}
